@@ -1,17 +1,21 @@
-package foo;
+package com.framework;
 
 import org.springframework.aop.framework.AdvisedSupport;
 import org.springframework.aop.framework.AopProxy;
 import org.springframework.beans.factory.SmartFactoryBean;
 
-import bar.DifferentServiceInterface;
-
 public class FooBeanFactory implements SmartFactoryBean {
 
-	private final Class serviceInterface;
+	private final Class<?> serviceInterface;
+	private final NamingStrategyEnum namingStrategy;
+	private final Class<?> targetClass;
 
-	public FooBeanFactory(final Class serviceInterface) {
+	public FooBeanFactory(final Class<?> serviceInterface,
+	                      final NamingStrategyEnum namingStrategy,
+	                      final Class<?> targetClass) {
 		this.serviceInterface = serviceInterface;
+		this.namingStrategy = namingStrategy;
+		this.targetClass = targetClass;
 	}
 
 	@Override
@@ -20,18 +24,18 @@ public class FooBeanFactory implements SmartFactoryBean {
 		advisedSupport.setProxyTargetClass(false);
 		advisedSupport.setInterfaces(serviceInterface);
 		advisedSupport.addAdvice(new Interceptor());
-		advisedSupport.setTargetClass(TargetClass.class);
+		advisedSupport.setTargetClass(targetClass);
 		advisedSupport.setOptimize(true);
 		advisedSupport.setOpaque(false);
 		advisedSupport.setExposeProxy(false);
 		advisedSupport.setFrozen(true);
 
-		final AopProxy aopProxy = new FooProxyFactory().createAopProxy(advisedSupport);
+		final AopProxy aopProxy = new FooProxyFactory(namingStrategy).createAopProxy(advisedSupport);
 		return aopProxy.getProxy();
 	}
 
 	@Override
 	public Class<?> getObjectType() {
-		return DifferentServiceInterface.class;
+			return serviceInterface;
 	}
 }
